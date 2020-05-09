@@ -1,0 +1,275 @@
+ -- 1
+
+select first_name, last_name,
+case when salary < 1000 then 'Niska pensja' 
+when salary >=1000 and salary <=2000 then 'Œrednia pensja'
+when salary >2000 then 'Wysoka pensja' 
+else 'brak wartoœci' END as pensja
+from HR.employees;
+
+--2
+
+select first_name,NVL(commission_pct,0)as NULLto0,commission_pct 
+from HR.employees;
+
+select first_name,NVL2(commission_pct,commission_pct,0)as NULLto0,commission_pct 
+from HR.employees;
+
+select first_name,coalesce(commission_pct,0)as NULLto0,commission_pct
+from HR.employees;
+
+select first_name,decode(COMMISSION_PCT,0,null) as NULLto0,COMMISSION_PCT
+from HR.employees;
+
+-- 3
+
+select * 
+from EMPLOYEES 
+order by COMMISSION_PCT nulls first;
+
+select * 
+from EMPLOYEES 
+order by COMMISSION_PCT nulls last;
+
+
+-- 4
+
+select USER,UID from SYS.DUAL;
+
+select TO_CHAR(sysdate, 'MM-DD-YYYY HH24:MI:SS') as DATE_NOW 
+from dual;
+
+-- 5
+
+select TO_DATE('01-30-2017','MM-DD-YYYY', 'NLS_DATE_LANGUAGE = Polish') as TO_DATE  
+from DUAL;
+
+-- 6
+
+SELECT ROUND(MONTHS_BETWEEN
+((select MAX(HIRE_DATE) from EMPLOYEES),
+(SELECT MIN(HIRE_DATE) from EMPLOYEES))) as MONTHS_BETWEEN
+FROM DUAL;
+
+-- 7 
+
+SELECT LAST_DAY('2020-2-09')
+FROM DUAL;
+
+-- 8
+
+SELECT ADD_MONTHS(TRUNC(SYSDATE,'YEAR'),2) - ADD_MONTHS(TRUNC(SYSDATE,'YEAR'),1) as FEBRUARY_2020
+FROM DUAL;
+
+--  9
+
+SELECT ROUND(ADD_MONTHS(TRUNC(TO_DATE('2020-05-25','YYYY-MM-DD'),'YEAR'),50)) as DATE_50_MONTHS_FORWARD
+FROM DUAL;
+
+-- 10
+
+SELECT  TO_CHAR(TO_DATE('2020-12-31','YYYY-MM-DD'),'DAY')
+FROM DUAL;
+
+-- 11
+
+SELECT ADD_MONTHS(SYSDATE,3)
+FROM DUAL;
+
+-- 12
+
+SELECT TO_CHAR(SYSDATE + INTERVAL '3' DAY - INTERVAL '1' HOUR,'MM-DD-YYYY HH24:MI:SS')
+FROM DUAL;
+
+-- 13
+
+SELECT TO_CHAR(TRUNC(ROUND(AVG(SALARY)),2),'9G999D99')
+FROM EMPLOYEES;
+
+
+-- 14
+
+SELECT MIN(E.SALARY) 
+FROM EMPLOYEES E
+LEFT JOIN JOBS J on E.JOB_ID=J.JOB_ID
+WHERE REGEXP_LIKE ( J.JOB_TITLE, 'Manager');
+
+
+-- 15
+
+SELECT COUNT(*) as ACC_workers
+FROM EMPLOYEES E
+LEFT JOIN DEPARTMENTS D on E.DEPARTMENT_ID=D.DEPARTMENT_ID
+WHERE REGEXP_LIKE ( D.DEPARTMENT_NAME,'Accounting') ;
+
+
+-- 16
+
+SELECT EXTRACT(YEAR FROM HIRE_DATE) as YEAR,EXTRACT(MONTH FROM HIRE_DATE) as MONTH, COUNT(*) AS COUNT_EMPLOYEES
+FROM EMPLOYEES
+WHERE EXTRACT( YEAR from HIRE_DATE) BETWEEN 2001 AND 2008
+GROUP BY 
+EXTRACT(YEAR FROM HIRE_DATE),
+ROLLUP(EXTRACT(MONTH FROM HIRE_DATE));
+
+-- 17
+select EXTRACT(YEAR from HIRE_DATE) as YEAR,
+SUM(DECODE(EXTRACT(MONTH from HIRE_DATE),1,1,0)) "I",
+SUM(DECODE(EXTRACT(MONTH from HIRE_DATE),2,1,0)) "II",
+SUM(DECODE(EXTRACT(MONTH from HIRE_DATE),3,1,0)) "III",
+SUM(DECODE(EXTRACT(MONTH from HIRE_DATE),4,1,0)) "IV",
+SUM(DECODE(EXTRACT(MONTH from HIRE_DATE),5,1,0)) "V",
+SUM(DECODE(EXTRACT(MONTH from HIRE_DATE),6,1,0)) "VI",
+SUM(DECODE(EXTRACT(MONTH from HIRE_DATE),7,1,0)) "VII",
+SUM(DECODE(EXTRACT(MONTH from HIRE_DATE),8,1,0)) "VIII",
+SUM(DECODE(EXTRACT(MONTH from HIRE_DATE),9,1,0)) "IX",
+SUM(DECODE(EXTRACT(MONTH from HIRE_DATE),10,1,0)) "X",
+SUM(DECODE(EXTRACT(MONTH from HIRE_DATE),11,1,0)) "XI",
+SUM(DECODE(EXTRACT(MONTH from HIRE_DATE),12,1,0)) "XII",
+count(*) as SUMA
+from EMPLOYEES 
+where  HIRE_DATE is not null
+group by EXTRACT(YEAR from HIRE_DATE)
+order by EXTRACT(YEAR from HIRE_DATE) asc;
+
+
+-- 18
+select d.DEPARTMENT_NAME, avg(e.SALARY) 
+from EMPLOYEES e 
+NATURAL JOIN DEPARTMENTS d
+GROUP BY d.DEPARTMENT_NAME;
+
+-- 19
+select JOB_TITLE, MAX_SALARY
+from JOBS 
+WHERE JOB_TITLE NOT LIKE '%Clerk';
+
+-- 20
+SELECT d.DEPARTMENT_NAME, j.JOB_TITLE, MIN(e.SALARY) 
+from DEPARTMENTS d
+LEFT JOIN EMPLOYEES e
+ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+RIGHT JOIN JOBS j
+ON e.JOB_ID = j.JOB_ID
+GROUP BY d.DEPARTMENT_NAME, j.JOB_TITLE
+ORDER BY d.DEPARTMENT_NAME;
+
+-- 21
+SELECT d.DEPARTMENT_NAME, ROUND(avg(e.SALARY), 2) " AVG SALARY"
+from DEPARTMENTS d
+LEFT JOIN HR.EMPLOYEES e
+ON d.DEPARTMENT_ID = e.DEPARTMENT_ID
+GROUP BY d.DEPARTMENT_NAME;
+
+-- 22
+SELECT j.JOB_TITLE, avg(e.SALARY) "AVG SALARY"
+from EMPLOYEES e
+inner join JOBS j
+ON e.JOB_ID = j.JOB_ID
+WHERE j.MAX_SALARY > 2000
+GROUP BY j.JOB_TITLE;
+
+-- 23
+select d.DEPARTMENT_NAME, max(e.SALARY) - min(e.SALARY) "(MAX - MIN) SALARY"
+from EMPLOYEES e
+right join DEPARTMENTS d
+ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+GROUP BY d.DEPARTMENT_NAME;
+
+-- 24
+select e1.FIRST_NAME, e1.LAST_NAME, e1.SALARY
+from EMPLOYEES e1
+WHERE e1.MANAGER_ID in (select e2.EMPLOYEE_ID from HR.EMPLOYEES e2 WHERE e1.SALARY < e2.SALARY);
+
+-- 25
+select * 
+from (select * from EMPLOYEES order by SALARY desc)
+where rownum <=3;
+
+-- 26
+select LAST_NAME, SALARY, (select max(SALARY) from EMPLOYEES) as MAX_SALARY from EMPLOYEES;
+
+-- 27
+select e.FIRST_NAME, e.LAST_NAME, e.SALARY, (select ROUND(AVG(SALARY),2) from EMPLOYEES) "AVG SALARY"
+from EMPLOYEES e
+where e.SALARY > (select AVG(SALARY) from EMPLOYEES);
+
+-- 28
+select j.JOB_TITLE, e.LAST_NAME
+from EMPLOYEES e
+inner join JOBS j
+ON e.JOB_ID = j.JOB_ID
+WHERE e.JOB_ID in (select JOB_ID from EMPLOYEES WHERE LAST_NAME like 'Smith');
+
+-- 29
+ALTER SESSION SET NLS_SORT = Polish;
+
+--zad 30
+
+select * from EMPLOYEES;
+INSERT INTO EMPLOYEES (employee_id, last_name,email, department_id, salary, hire_date,job_id) VALUES (207,'£ukasiñski','ab@asda.a',10, 2850, to_date('01-302014','mm-dd-yy'),'AD_ASST');  COMMIT;
+
+
+select e.FIRST_NAME,e.LAST_NAME,d.DEPARTMENT_NAME, e.SALARY 
+from EMPLOYEES e
+INNER JOIN DEPARTMENTS d
+ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+WHERE e.SALARY in (select max(e1.SALARY) from Employees e1 WHERE e1.DEPARTMENT_ID = d.DEPARTMENT_ID);
+
+-- 31
+select e.FIRST_NAME, e.LAST_NAME, e.SALARY 
+from EMPLOYEES e
+WHERE e.SALARY > ANY(select e.SALARY from EMPLOYEES e WHERE e.DEPARTMENT_ID = 10);
+
+-- 32
+select e.FIRST_NAME, e.LAST_NAME, e.SALARY 
+from EMPLOYEES e
+WHERE e.SALARY > ALL(select e.SALARY from EMPLOYEES e WHERE e.DEPARTMENT_ID = 30);
+
+-- 33
+select j.JOB_TITLE, avg(e.SALARY)
+from EMPLOYEES e
+INNER JOIN JOBS j
+ON j.JOB_ID = e.JOB_ID
+GROUP BY j.JOB_TITLE
+HAVING avg(e.SALARY) > (select avg(e1.SALARY) from EMPLOYEES e1
+INNER JOIN HR.JOBS j1 
+ON j1.JOB_ID = e1.JOB_ID
+WHERE j1.JOB_TITLE like '%Manager');
+
+-- 34
+select j.JOB_TITLE, avg(e.SALARY)
+from EMPLOYEES e
+INNER JOIN JOBS j
+ON j.JOB_ID = e.JOB_ID
+GROUP BY j.JOB_TITLE
+HAVING avg(e.SALARY) = 
+  (select min(avg(e1.SALARY))
+  from EMPLOYEES e1
+  GROUP BY e1.JOB_ID);
+
+-- 35
+select e.FIRST_NAME, e.LAST_NAME, e.SALARY
+from EMPLOYEES e
+WHERE e.SALARY < (select avg(e1.SALARY) 
+                  from EMPLOYEES e1 
+                  WHERE e1.JOB_ID = e.JOB_ID
+                  GROUP BY e1.JOB_ID);
+
+-- 36
+
+select e.EMPLOYEE_ID,e.FIRST_NAME, e.LAST_NAME 
+from EMPLOYEES e
+WHERE EXISTS (SELECT * FROM EMPLOYEES e1 where e.EMPLOYEE_ID = e1.MANAGER_ID)
+ORDER BY e.EMPLOYEE_ID;
+
+-- 37
+select d.DEPARTMENT_ID, d.DEPARTMENT_NAME 
+from DEPARTMENTS d
+WHERE not exists (select e1.DEPARTMENT_ID from EMPLOYEES e1 where e1.DEPARTMENT_ID = d.DEPARTMENT_ID);
+
+
+select d.DEPARTMENT_ID, d.DEPARTMENT_NAME 
+from DEPARTMENTS d
+WHERE d.DEPARTMENT_ID not in (select e1.DEPARTMENT_ID from EMPLOYEES e1 where e1.DEPARTMENT_ID = d.DEPARTMENT_ID);
+ 
